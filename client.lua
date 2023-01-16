@@ -2,7 +2,7 @@ NODE_TYPE_RESPAWN = 1 -- 0 asphalt, 1 any road
 RESPAWN_RADIUS = 75 -- default 200
 RESPAWN_DELAY = 5 -- seconds (def. 5)
 BACKUP_RESPAWN_POINTS = {
-	{x = 0, y = 0, z = 70}
+	{x = 0, y = 0, z = 70} --TODO: Add more backup respawn points (only in or near city)
 }
 
 BLIPS = {}
@@ -94,27 +94,28 @@ function RespawnNear(deathCoords, radius)
 				SetBlipSprite(lastBlip, 1)
 			end
 			local ret, den, flags = GetVehicleNodeProperties(newPos.x, newPos.y, newPos.z)
-			if (flags & (1 << (4 - 1)) ~= 0) then
+			-- check if flag 4 is set and 8 not (4 = smaller roads, 8 = asphalt?)
+			if (flags & (1 << (4 - 1)) ~= 0 and flags & (1 << (8 - 1)) == 0) then  -- sidewalk and road
 				bestPoint.den = 0
 				bestPoint.pos = newPos
 				if (DEBUG_PRINT) then
 					SetBlipColour(lastBlip, colors[11]) -- yellow/gold == best
 				end
-			elseif bestPoint.den > den or (bestPoint.den == den and math.random(1,2) == 1) then
-				bestPoint.den = den
-				bestPoint.pos = newPos
+			else
+				if bestPoint.den > den or (bestPoint.den == den and math.random(1,2) == 1) then
+					bestPoint.den = den
+					bestPoint.pos = newPos
+				end
 				if (DEBUG_PRINT) then
 					if den <= 1 then
-						SetBlipColour(lastBlip, colors[3]) -- green == good
-					elseif den < 3 then
-						SetBlipColour(lastBlip, colors[4]) -- blue == ok
+						SetBlipColour(lastBlip, colors[3]) -- green == good ; low dens streets
+					elseif den < 4 then
+						SetBlipColour(lastBlip, colors[4]) -- blue == ok ; medium dens streets
+					elseif den < 6 then
+						SetBlipColour(lastBlip, colors[12]) -- orange == meh ; (uncommon, but should be high dens streets)
 					else
-						SetBlipColour(lastBlip, colors[12]) -- orange == meh
+						SetBlipColour(lastBlip, colors[2]) -- red == bad (Highways, Main roads, rarely on random intersections)
 					end
-				end
-			else
-				if (DEBUG_PRINT) then
-					SetBlipColour(lastBlip, colors[2]) -- red == bad (Highways, Main roads)
 				end
 			end	
 		end
@@ -156,7 +157,7 @@ end
 
 -- Commands to change the respawnType
 -- expects 1 or 2 ("main", "any")
--- 0 = Backups only on big roads with asphalt
+-- 1 = Backups only on big roads with asphalt
 -- 2 = Any path or road (recommended)
 
 RegisterCommand("respawnType", function(source, args, rawCommand)
@@ -166,6 +167,36 @@ end, false)
 RegisterCommand("rt", function(source, args, rawCommand)
 	ChangeRespawnType(args[1])
 end, false)
+
+RegisterCommand("test", function (source, args, rawCommand)
+	-- local ret, den, flags = GetVehicleNodeProperties(newPos.x, newPos.y, newPos.z)
+	local myPos = GetEntityCoords(PlayerPedId())
+	local nearestNode = GetNthClosestVehicleNodeId(myPos.x, myPos.y, myPos.z, 1, 1, 300.0, 300.0)
+	if nearestNode == 0 then
+		print("no node found")
+		return
+	end
+	local nodePos = GetVehicleNodePosition(nearestNode)
+	local ret, den, flags = GetVehicleNodeProperties(nodePos.x, nodePos.y, nodePos.z)
+	print("den: " .. den)
+	print("flags: " .. flags .. " ("..table.concat(toBits(flags), " ")..")")
+	print("flags & (1 << (4 - 1)) ~= 0: " .. tostring(flags & (1 << (4 - 1)) ~= 0))
+	-- blip
+	local blip = AddBlipForCoord(nodePos.x, nodePos.y, nodePos.z)
+	SetBlipSprite(blip, 1)
+	SetBlipColour(blip, 1)
+end)
+
+function toBits(num)
+    -- returns a table of bits, least significant first.
+    local t={} -- will contain the bits
+    while num>0 do
+        rest=math.fmod(num,2)
+        t[#t+1]=math.floor(rest)
+        num=(num-rest)/2
+    end
+    return t
+end
 
 function ChangeRespawnType(type)
 	if type == "main" then
@@ -179,6 +210,7 @@ function ChangeRespawnType(type)
 		end
 	end
 end
+Respawn(vector3(0,0,0))
 
 exports("ChangeRespawnType", ChangeRespawnType)
 exports("Respawn", Respawn)
