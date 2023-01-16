@@ -7,6 +7,7 @@ The goal is to create a respawn that works similar to GTA5 Online. Currently it 
   2.1 If several are found, it will be chosen at random
 3. If no respawn node is found, it iterates with a new midpoint (10% closer to `(0,0,0)`).
 4. If everything before fails (maxIterations, too far), you will be resurrected on `(0,0,70)`. (Script contains a BACKUP_RESPAWN_POINTS list, feel free to add some own points)
+(5. If the selected point is too close to the death point (10000 units), try again with a radius of `+100`)
 
 ## Command(s)
 
@@ -27,6 +28,7 @@ Debug Prints are also available. Just change the bool in `client.lua`
 Walkway Respawnpoints are **not** shown. You just respawn instantly there.
 | Color       |  Meaning |
 |-------------|----------|
+| Dark gray | Death Point |
 | Yellow/Gold | Best (Beach, Alley, Offroad...)|
 | Green       | Good (Smaller roads (asphalt) |
 | Blue        | Okay (Side streets (sometimes offroad)) |
