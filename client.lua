@@ -5,9 +5,12 @@ BACKUP_RESPAWN_POINTS = {
 	{x = 0, y = 0, z = 70}
 }
 
-DEBUG_PRINT = false
+BLIPS = {}
+DEBUG_PRINT = true
+
 -- https://docs.fivem.net/docs/resources/baseevents/events/onPlayerDied/
 AddEventHandler('baseevents:onPlayerDied', function(killerType, deathCoords)
+	clearBlips()
 	exports.spawnmanager:setAutoSpawn(false)
 	Wait(RESPAWN_DELAY * 1000)
 	RespawnNear(deathCoords, RESPAWN_RADIUS)
@@ -16,11 +19,18 @@ end)
 
 -- https://docs.fivem.net/docs/resources/baseevents/events/onPlayerKilled/
 AddEventHandler('baseevents:onPlayerKilled', function(killerId, deathData)
+	clearBlips()
 	exports.spawnmanager:setAutoSpawn(false)
 	Wait(RESPAWN_DELAY * 1000)
 	RespawnNear(deathData.killerpos, RESPAWN_RADIUS)
 	ClearPedBloodDamage(GetPlayerPed(-1))
 end)
+
+function clearBlips()
+	for i, blip in ipairs(BLIPS) do
+		RemoveBlip(blip)
+	end
+end
 
 function RespawnNear(deathCoords, radius)
 	local death_x, death_y, death_z = table.unpack(deathCoords)
@@ -33,7 +43,7 @@ function RespawnNear(deathCoords, radius)
 	local node = GetNthClosestVehicleNodeId(death_x,death_y,death_z, math.random(lowerOffset, higherOffset), NODE_TYPE_RESPAWN, 300.0, 300.0)
 	local counter = 0
 	
-	local colors = {0,1,2,3,7,8,25,27,29,40,5,17} -- for debug blips https://docs.fivem.net/docs/game-references/hud-colors/
+	local colors = {0,1,2,3,7,8,25,27,29,40,5,17} -- for debug blips https://docs.fivem.net/docs/game-references/blips/#blip-colors
 
 	local lowerOffTemp = lowerOffset
 	local heigherOffTemp = higherOffset
@@ -59,6 +69,14 @@ function RespawnNear(deathCoords, radius)
 	local found, sidewalk
 	local bestPoint = {den=15, pos=newPos}
 	
+	if (DEBUG_PRINT) then
+		lastBlip = AddBlipForCoord(death_x,death_y,death_z)
+		BLIPS[#BLIPS+1] = lastBlip
+		SetBlipSprite(lastBlip, 1)
+		
+		SetBlipColour(lastBlip, colors[10]) --dark grey == death
+	end
+
 	repeat
 		if node == 0 then
 			break
@@ -72,6 +90,7 @@ function RespawnNear(deathCoords, radius)
 			end
 			if (DEBUG_PRINT) then
 				lastBlip = AddBlipForCoord(newPos.x, newPos.y, newPos.z)
+				BLIPS[#BLIPS+1] = lastBlip
 				SetBlipSprite(lastBlip, 1)
 			end
 			local ret, den, flags = GetVehicleNodeProperties(newPos.x, newPos.y, newPos.z)
@@ -85,7 +104,6 @@ function RespawnNear(deathCoords, radius)
 				bestPoint.den = den
 				bestPoint.pos = newPos
 				if (DEBUG_PRINT) then
-					-- maybe for later priority system? The lower the den the better the road (less cars)?
 					if den <= 1 then
 						SetBlipColour(lastBlip, colors[3]) -- green == good
 					elseif den < 3 then
@@ -116,8 +134,8 @@ function RespawnNear(deathCoords, radius)
 	
 	-- check if sidewalk is too close to deathCoords, if so call Respawn with higherRadius
 	local distance = (death_x - sidewalk.x)^2 + (death_y - sidewalk.y)^2
-	if #(deathCoords - sidewalk) < 10000 then
-		Respawn(sidewalk, radius*2)
+	if distance < 10000 then
+		RespawnNear(deathCoords, radius+100)
 		return
 	end
 
