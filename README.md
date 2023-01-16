@@ -1,14 +1,13 @@
-**!! Currently no interest in active further development. !!**
-
 # FiveM Nearby Respawn System
 
-**This is an unstable and WIP script** for a system that will revive the player nearby to a "safe" location.
-The goal is to create a respawn that works similar to GTA5 Online. Currently it should work 99% of the time.
+This script tries to revive a player near a "safe" location.
+The goal is to create a respawn that works similar to GTA5 Online. Currently it should work 99.9% of the time.
 1. At all time the script tries to spawn you nearby on a walkway.
-2. If this fails it tries finding a backup point by search Nodes (Streets, paths). By comparing the traffic density, points with a lower density are preferred (the lower the density, the fewer cars)  
+2. If this fails it tries finding a backup point by search Nodes (Streets, paths). By comparing the traffic density, points with a lower density are preferred (the lower the density, the fewer cars), also it tries to check the type of the road/path by reading the flags.
   2.1 If several are found, it will be chosen at random
 3. If no respawn node is found, it iterates with a new midpoint (10% closer to `(0,0,0)`).
-4. If everything before fails (maxIterations, too far), you will be resurrected on `(0,0,70)`.
+4. If everything before fails (maxIterations, too far), you will be resurrected on `(0,0,70)`. (Script contains a BACKUP_RESPAWN_POINTS list, feel free to add some own points)
+(5. If the selected point is too close to the death point (10000 units), try again with a radius of `+100`)
 
 ## Command(s)
 
@@ -19,21 +18,29 @@ Expects one argument:
     > 1 | any -- Respawns you on any road or path (eg. Footpath, on Mount Chiliad, Alleys...)
 This command allows you to change the respawn type (respawn location).
 
-## Notes:
+## Screenshots:
 Debug Prints are also available. Just change the bool in `client.lua`  
-<img src="https://user-images.githubusercontent.com/68606032/195240510-bf30db37-d923-417c-b348-58c2435bd3d1.png" data-canonical-src="https://user-images.githubusercontent.com/68606032/195240510-bf30db37-d923-417c-b348-58c2435bd3d1.png" width="400" />  
+<img src="https://user-images.githubusercontent.com/68606032/212586570-e95f61da-2cbe-4b91-a6fb-0f65bdaa16ca.jpg" width="400" />
+<img src="https://user-images.githubusercontent.com/68606032/212586563-49f0ee0e-a748-4320-9c24-d8f265b0668f.jpg" width="210" />  
+<img src="https://user-images.githubusercontent.com/68606032/212586454-48e977d7-46a6-4d2d-9135-ecb2d539bbb7.jpg" width="400" />
+<img src="https://user-images.githubusercontent.com/68606032/212586567-e50a3d2b-be00-4d44-9c6c-926425dc2263.jpg" width="240" />
 
 Walkway Respawnpoints are **not** shown. You just respawn instantly there.
 | Color       |  Meaning |
 |-------------|----------|
-| Yellow/Gold | Best (Beach, Alley...)|
-| Green       | Good (Offroad) |
-| Blue        | Okay (Smaller roads (sometimes offroad)) |
-| Orange      | Meh (Uncommon) |
-| Red         | Bad (Highway) |
+| Dark gray | Death Point |
+| Yellow/Gold | Best (Beach, Alley, Offroad...)|
+| Green       | Good (Smaller roads (asphalt) |
+| Blue        | Okay (Side streets (sometimes offroad)) |
+| Orange      | Meh (Uncommon (High density)) |
+| Red         | Bad (Highway, Main roads, (rarely intersections)) |
+
+## Requirements
+You need a map for init spawn points, like `fivem-map-skater`, `fivem-map-hipster` or your own.
+Don't forget the `basic-gamemode` for enabling these maps.
 
 ## Known Issues:
-* (You rarely respawn too far inland from the sea)
-* The radius is too small in the city while it is too big in the countryside
-* Sometimes no Nodes are found. (Could be intended by the native function?)
-* No initial player model
+* You **rarely** respawn too far inland from the sea **Needs more testing**
+* You **rarely** respawn inside of an bunker entrance (Maybe also other dlc content, eg. facilities)
+* Sometimes no nodes are found. (Could be intended by the native function?) **Needs more testing**
+* ~~The radius is too small in the city while it is too big in the countryside~~

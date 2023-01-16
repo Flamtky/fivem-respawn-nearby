@@ -4,9 +4,9 @@ game 'gta5'
 author 'Flamtky'
 description 'Respawn System for nearby respawning, like in GTA Online'
 repository 'https://github.com/flamtky/fivem-respawn-nearby'
-version '1.0.0'
+version '1.1.0'
 
-resource_type 'gametype' { name = 'My awesome game type!' }
+resource_type 'gametype' { name = 'Freeroam' }
 
 client_script 'client.lua'
 
