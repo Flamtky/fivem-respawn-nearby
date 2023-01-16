@@ -33,7 +33,7 @@ Walkway Respawnpoints are **not** shown. You just respawn instantly there.
 | Red         | Bad (Highway) |
 
 ## Known Issues:
-* (You rarely respawn too far inland from the sea)
-* The radius is too small in the city while it is too big in the countryside
-* Sometimes no Nodes are found. (Could be intended by the native function?)
-* No initial player model
+* (You rarely respawn too far inland from the sea) **Needs more testing**
+* ~~The radius is too small in the city while it is too big in the countryside~~
+* Sometimes no Nodes are found. (Could be intended by the native function?) **Needs more testing**
+* ~~No initial player model~~ **But still in WIP**
