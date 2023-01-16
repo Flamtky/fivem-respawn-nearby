@@ -6,7 +6,7 @@ BACKUP_RESPAWN_POINTS = {
 }
 
 BLIPS = {}
-DEBUG_PRINT = true
+DEBUG_PRINT = false
 
 -- https://docs.fivem.net/docs/resources/baseevents/events/onPlayerDied/
 AddEventHandler('baseevents:onPlayerDied', function(killerType, deathCoords)
@@ -168,36 +168,6 @@ RegisterCommand("rt", function(source, args, rawCommand)
 	ChangeRespawnType(args[1])
 end, false)
 
-RegisterCommand("test", function (source, args, rawCommand)
-	-- local ret, den, flags = GetVehicleNodeProperties(newPos.x, newPos.y, newPos.z)
-	local myPos = GetEntityCoords(PlayerPedId())
-	local nearestNode = GetNthClosestVehicleNodeId(myPos.x, myPos.y, myPos.z, 1, 1, 300.0, 300.0)
-	if nearestNode == 0 then
-		print("no node found")
-		return
-	end
-	local nodePos = GetVehicleNodePosition(nearestNode)
-	local ret, den, flags = GetVehicleNodeProperties(nodePos.x, nodePos.y, nodePos.z)
-	print("den: " .. den)
-	print("flags: " .. flags .. " ("..table.concat(toBits(flags), " ")..")")
-	print("flags & (1 << (4 - 1)) ~= 0: " .. tostring(flags & (1 << (4 - 1)) ~= 0))
-	-- blip
-	local blip = AddBlipForCoord(nodePos.x, nodePos.y, nodePos.z)
-	SetBlipSprite(blip, 1)
-	SetBlipColour(blip, 1)
-end)
-
-function toBits(num)
-    -- returns a table of bits, least significant first.
-    local t={} -- will contain the bits
-    while num>0 do
-        rest=math.fmod(num,2)
-        t[#t+1]=math.floor(rest)
-        num=(num-rest)/2
-    end
-    return t
-end
-
 function ChangeRespawnType(type)
 	if type == "main" then
 		NODE_TYPE_RESPAWN = 0
@@ -210,7 +180,6 @@ function ChangeRespawnType(type)
 		end
 	end
 end
-Respawn(vector3(0,0,0))
 
 exports("ChangeRespawnType", ChangeRespawnType)
 exports("Respawn", Respawn)
