@@ -35,9 +35,6 @@ Walkway Respawnpoints are **not** shown. You just respawn instantly there.
 | Orange      | Meh (Uncommon (High density)) |
 | Red         | Bad (Highway, Main roads, (rarely intersections)) |
 
-## Requirements
-You need a map for init spawn points, like `fivem-map-skater`, `fivem-map-hipster` or your own.
-Don't forget the `basic-gamemode` for enabling these maps.
 
 ## Known Issues:
 * You **rarely** respawn too far inland from the sea **Needs more testing**
