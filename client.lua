@@ -4,6 +4,12 @@ RESPAWN_DELAY = 5 -- seconds (def. 5)
 BACKUP_RESPAWN_POINTS = {
 	{x = 0, y = 0, z = 70} --TODO: Add more backup respawn points (only in or near city)
 }
+INIT_PLAYER_MODELS = {
+	"a_m_y_skater_01",
+	"a_m_y_skater_02",
+	"a_m_y_stbla_01",
+	"a_m_y_stbla_02"
+}
 
 BLIPS = {}
 DEBUG_PRINT = false
@@ -140,18 +146,20 @@ function RespawnNear(deathCoords, radius)
 		return
 	end
 
-	Respawn(sidewalk)
+	local playerModel = GetEntityModel(PlayerPedId())
+	Respawn(sidewalk, playerModel)
 end
 
-function Respawn(coords)
+function Respawn(coords, model)
+	local newPlayerModel = model or INIT_PLAYER_MODELS[math.random(1, #INIT_PLAYER_MODELS)]
 	exports.spawnmanager:setAutoSpawnCallback(function()
         exports.spawnmanager:spawnPlayer({
             x = coords.x,
             y = coords.y,
-            z = coords.z
+            z = coords.z,
+			model = newPlayerModel
         })
     end)
-    exports.spawnmanager:setAutoSpawn(true)
     exports.spawnmanager:forceRespawn()
 end
 
@@ -181,6 +189,18 @@ function ChangeRespawnType(type)
 	end
 end
 
+-- Awaiting scripts workaround
+local player = PlayerPedId()
+local playerCoords = GetEntityCoords(player)
+local playerHeading = GetEntityHeading(player)
+local isFalling = IsPedFalling(player)
+if playerCoords.x == 0 and playerCoords.y == 0 and playerCoords.z == 1 and playerHeading == 0 and not isFalling then
+	local randomBackupPoint = BACKUP_RESPAWN_POINTS[math.random(1, #BACKUP_RESPAWN_POINTS)]
+	randomBackupPoint = vector3(randomBackupPoint['x'], randomBackupPoint['y'], randomBackupPoint['z'])
+	Respawn(randomBackupPoint)
+end
+
+-- Exports
 exports("ChangeRespawnType", ChangeRespawnType)
 exports("Respawn", Respawn)
 exports("RespawnNear", RespawnNear)
