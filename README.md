@@ -12,11 +12,13 @@ The goal is to create a respawn that works similar to GTA5 Online. Currently it 
 ## Command(s)
 
 ### `/respawnType` | `/rt`
-Expects one argument:
+This command allows you to change the respawn type (respawn location). 
+
+Arguments:
 - type (possbile Values: `0`,`1` or `main`, `any`)
     > 0 | main -- Respawns you only near big/main roads (eg. Highways)  
     > 1 | any -- Respawns you on any road or path (eg. Footpath, on Mount Chiliad, Alleys...)
-This command allows you to change the respawn type (respawn location).
+
 
 ## Screenshots:
 Debug Prints are also available. Just change the bool in `client.lua`  
