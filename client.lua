@@ -19,7 +19,7 @@ AddEventHandler('baseevents:onPlayerDied', function(killerType, deathCoords)
 	clearBlips()
 	exports.spawnmanager:setAutoSpawn(false)
 	Wait(RESPAWN_DELAY * 1000)
-	RespawnNear(deathCoords, RESPAWN_RADIUS)
+	RespawnNear(deathCoords, RESPAWN_RADIUS, 0)
 	ClearPedBloodDamage(GetPlayerPed(-1))
 end)
 
@@ -28,7 +28,7 @@ AddEventHandler('baseevents:onPlayerKilled', function(killerId, deathData)
 	clearBlips()
 	exports.spawnmanager:setAutoSpawn(false)
 	Wait(RESPAWN_DELAY * 1000)
-	RespawnNear(deathData.killerpos, RESPAWN_RADIUS)
+	RespawnNear(deathData.killerpos, RESPAWN_RADIUS, 0)
 	ClearPedBloodDamage(GetPlayerPed(-1))
 end)
 
@@ -38,12 +38,20 @@ function clearBlips()
 	end
 end
 
-function RespawnNear(deathCoords, radius)
+function RespawnNear(deathCoords, radius, _depth)
+	local playerModel = GetEntityModel(PlayerPedId())
+	if (_depth > 10) then
+		print("[ERROR]: Max depth reached, aborting RespawnNear")
+		Respawn(deathCoords, 0, playerModel)
+		return
+	end
+
 	local death_x, death_y, death_z = table.unpack(deathCoords)
 	if (DEBUG_PRINT) then
 		print("[DEBUG]: RespawnNear called with deathCoords: [" .. death_x .. ", " .. death_y .. ", " .. death_z .. "], radius: " .. radius)
 	end
 	local newPos = BACKUP_RESPAWN_POINTS[math.random(1, #BACKUP_RESPAWN_POINTS)]
+	local newRot = math.random(0, 360)
 	local maxIterations = 50
 	local counter = 0
 	local found = false
@@ -60,12 +68,12 @@ function RespawnNear(deathCoords, radius)
 	end
 
 	while (not found) and counter < maxIterations do
-		for i = 1, 5 do
+		for i = 1, 20 do
 			local node = GetNthClosestVehicleNodeId(death_x, death_y, death_z, math.random(radius, radius * 3), 1, 300.0, 300.0)
 			if node ~= 0 then
 				local p = GetVehicleNodePosition(node)
 				local newP
-				found, newP = GetSafeCoordForPed(p.x, p.y, p.z, false, 16)
+				found, newP = GetSafeCoordForPed(p.x, p.y, p.z, false, 1)
 
 				if (DEBUG_BLIPS) then
 					local blip = AddBlipForCoord(p.x,p.y,p.z)
@@ -83,8 +91,17 @@ function RespawnNear(deathCoords, radius)
 
 				if found then
 					newPos = newP
+					newRot = GetHeadingFromVector_2d(p.x - newP.x, p.y - newP.y)
+					print("[DEBUG]: Rot: " .. newRot)
 					break
 				else
+					found, newP = GetSafeCoordForPed(p.x, p.y, p.z, false, 16)
+					if found then
+						newPos = newP
+						newRot = GetHeadingFromVector_2d(p.x - newP.x, p.y - newP.y)
+						print("[DEBUG]: Rot: " .. newRot)
+						break
+					end
 					backups[#backups+1] = p
 				end
 			end
@@ -95,6 +112,9 @@ function RespawnNear(deathCoords, radius)
 			if (#backups > 0) then -- try random backups, if any
 				newPos = backups[math.random(1, #backups)]
 				found = true
+				if (DEBUG_PRINT) then
+					print("[DEBUG]: Random backup used")
+				end
 				break
 			end
 		
@@ -118,7 +138,7 @@ function RespawnNear(deathCoords, radius)
 	end
 
 	-- North Yankton check
-	if newPos.x > 5000 and newPos.y < -5000 then
+	if newPos.x > 2750 and newPos.y < -4500 then
 		newPos = vector3(1285.0, -3339.0, 6.0) -- Port (nearest Point)
 		if (DEBUG_PRINT) then
 			print("[DEBUG]: North Yankton detected, teleporting to port...")
@@ -132,9 +152,15 @@ function RespawnNear(deathCoords, radius)
 		print("[DEBUG]: Distance to deathCoords: " .. string.format("%.2f", distance))
 	end
 	if distance < radius then
-		RespawnNear(deathCoords, math.ceil(radius * 1.1))
+		RespawnNear(deathCoords, math.ceil(radius * 1.1), _depth + 1)
 		if (DEBUG_PRINT) then
 			print("[DEBUG]: Too close to deathCoords, trying again...")
+		end
+		if (DEBUG_BLIPS) then
+			local blip = AddBlipForCoord(newPos.x,newPos.y,newPos.z)
+			BLIPS[#BLIPS+1] = blip
+			SetBlipSprite(blip, 1)
+			SetBlipColour(blip, 3) -- blue
 		end
 		return
 	end
@@ -146,19 +172,19 @@ function RespawnNear(deathCoords, radius)
 		local blip = AddBlipForCoord(newPos.x,newPos.y,newPos.z)
 		BLIPS[#BLIPS+1] = blip
 		SetBlipSprite(blip, 1)
-		SetBlipColour(blip, 5) --p
+		SetBlipColour(blip, 5) -- Gold/Yellow
 	end
-	local playerModel = GetEntityModel(PlayerPedId())
-	Respawn(newPos, playerModel)
+	Respawn(newPos, newRot, playerModel)
 end
 
-function Respawn(coords, model)
+function Respawn(coords, rot, model)
 	local newPlayerModel = model or INIT_PLAYER_MODELS[math.random(1, #INIT_PLAYER_MODELS)]
 	exports.spawnmanager:setAutoSpawnCallback(function()
 		exports.spawnmanager:spawnPlayer({
 			x = coords.x,
 			y = coords.y,
 			z = coords.z,
+			heading = rot,
 			model = newPlayerModel
 		})
 	end)
@@ -184,5 +210,21 @@ exports("RespawnNear", RespawnNear)
 -- Debug DELETE BEFORE RELEASE
 RegisterCommand("respawn", function(source, args, rawCommand)
 	clearBlips()
-	RespawnNear(GetEntityCoords(PlayerPedId()), 100)
+	RespawnNear(GetEntityCoords(PlayerPedId()), RESPAWN_RADIUS, 0)
 end, false)
+
+RegisterCommand("rot", function(source, args, rawCommand)
+	local rot = GetEntityHeading(PlayerPedId())
+	print("[DEBUG]: Rot: " .. rot)
+end, false)
+
+-- on key press ('u') execute respawn
+Citizen.CreateThread(function()
+	while true do
+		Citizen.Wait(0)
+		if IsControlJustPressed(0, 303) then
+			clearBlips()
+			RespawnNear(GetEntityCoords(PlayerPedId()), RESPAWN_RADIUS, 0)
+		end
+	end
+end)
