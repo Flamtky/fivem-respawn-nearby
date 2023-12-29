@@ -27,19 +27,14 @@ Debug Prints are also available. Just change the bool in `client.lua`
 <img src="https://user-images.githubusercontent.com/68606032/212586454-48e977d7-46a6-4d2d-9135-ecb2d539bbb7.jpg" width="400" />
 <img src="https://user-images.githubusercontent.com/68606032/212586567-e50a3d2b-be00-4d44-9c6c-926425dc2263.jpg" width="240" />
 
-Walkway Respawnpoints are **not** shown. You just respawn instantly there.
 | Color       |  Meaning |
 |-------------|----------|
 | Dark gray | Death Point |
-| Yellow/Gold | Best (Beach, Alley, Offroad...)|
-| Green       | Good (Smaller roads (asphalt) |
-| Blue        | Okay (Side streets (sometimes offroad)) |
-| Orange      | Meh (Uncommon (High density)) |
-| Red         | Bad (Highway, Main roads, (rarely intersections)) |
+| Yellow/Gold | Respawn Point |
+| Green       | Nearst Node for the final Respawn Point (safe point found) |
+| Red         | Nearest Node for failed Respawn Point (no safe point found) |
 
 
 ## Known Issues:
 * You **rarely** respawn too far inland from the sea **Needs more testing**
 * You **rarely** respawn inside of an bunker entrance (Maybe also other dlc content, eg. facilities)
-* Sometimes no nodes are found. (Could be intended by the native function?) **Needs more testing**
-* ~~The radius is too small in the city while it is too big in the countryside~~
