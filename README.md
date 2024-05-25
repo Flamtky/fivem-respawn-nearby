@@ -9,17 +9,6 @@ The goal is to create a respawn that works similar to GTA5 Online. Currently it 
 4. If everything before fails (maxIterations, too far), you will be resurrected on `(0,0,70)`. (Script contains a BACKUP_RESPAWN_POINTS list, feel free to add some own points)  
 5. If the selected point is too close to the death point (10000 units), try again with a radius of `+100`
 
-## Command(s)
-
-### `/respawnType` | `/rt`
-This command allows you to change the respawn type (respawn location). 
-
-Arguments:
-- type (possbile Values: `0`,`1` or `main`, `any`)
-    > 0 | main -- Respawns you only near big/main roads (eg. Highways)  
-    > 1 | any -- Respawns you on any road or path (eg. Footpath, on Mount Chiliad, Alleys...)
-
-
 ## Screenshots:
 Debug Prints are also available. Just change the bool in `client.lua`  
 <img src="https://user-images.githubusercontent.com/68606032/212586570-e95f61da-2cbe-4b91-a6fb-0f65bdaa16ca.jpg" width="400" />
@@ -31,10 +20,11 @@ Debug Prints are also available. Just change the bool in `client.lua`
 |-------------|----------|
 | Dark gray | Death Point |
 | Yellow/Gold | Respawn Point |
-| Green       | Nearst Node for the final Respawn Point (safe point found) |
-| Red         | Nearest Node for failed Respawn Point (no safe point found) |
+| Green       | Safe Respawn Point (Footpath, Walkway, etc.) |
+| Blue         | Backup Respawn Point (High density roads, Wide streets) |
+| Red         | Too close to the Death Point |
 
 
 ## Known Issues:
-* You **rarely** respawn too far inland from the sea **Needs more testing**
 * You **rarely** respawn inside of an bunker entrance (Maybe also other dlc content, eg. facilities)
+* This system only supports the main island of GTA5 (Los Santos). North Yankton, Cayo Perico, etc. are not supported. (WIP)
