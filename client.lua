@@ -103,10 +103,6 @@ function RespawnNear(deathCoords, radius, _depth)
 			table.sort(densities)
 
 			for i = 1, #densities do
-				if (footpath_found) then
-					break
-				end
-
 				local density = densities[i]
 				local spawns = possibleSpawns[density]
 				if (#spawns > 0) then
@@ -120,9 +116,8 @@ function RespawnNear(deathCoords, radius, _depth)
 						if (succ) then
 							footpath_found = true
 							newPos = footpathPos
-							newRot = GetHeadingFromVector_2d(possibleSpawn.x - footpathPos.x, possibleSpawn.y - footpathPos.y) -- face to road
+							newRot = GetHeadingFromVector_2d(footpathPos.x - possibleSpawn.x, footpathPos.y - possibleSpawn.y) -- face towards road
 							showBlipIfDebug(footpathPos, 2, "Footpath") -- green
-							break
 						else
 							backups[#backups+1] = possibleSpawn
 							showBlipIfDebug(possibleSpawn, 3, "Backup") -- blue
@@ -183,15 +178,25 @@ function RespawnNear(deathCoords, radius, _depth)
 	if (DEBUG_PRINT) then
 		print("[DEBUG]: Distance to deathCoords: " .. string.format("%.2f", distance))
 	end
-	if distance < RESPAWN_RADIUS then
+	counter = 1
+	while distance < RESPAWN_RADIUS and counter+1 < #backups do
 		if (DEBUG_PRINT) then
-			print("[DEBUG]: Too close to deathCoords, trying again...")
+			print("[DEBUG]: Too close to deathCoords, trying backups...")
 		end
 		showBlipIfDebug(newPos, 1, "Too Close") -- red
+
+		counter = counter + 1
+		newPos = backups[counter]
+		distance = math.sqrt((org_death_x - newPos.x) ^ 2 + (org_death_y - newPos.y) ^ 2)
+	end
+
+	if (distance < RESPAWN_RADIUS) then
+		if (DEBUG_PRINT) then
+			print("[DEBUG]: Still too close to deathCoords, trying again with higher radius...")
+		end
 		RespawnNear(deathCoords, math.ceil(radius * 1.1), _depth + 1)
 		return
 	end
-
 	if (DEBUG_PRINT) then
 		print("[DEBUG]: Respawn coords: [" .. newPos.x .. ", " .. newPos.y .. ", " .. newPos.z .. "]")
 	end
