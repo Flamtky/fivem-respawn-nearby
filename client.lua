@@ -1,8 +1,7 @@
-NODE_TYPE_RESPAWN = 1 -- 0 asphalt, 1 any road
-RESPAWN_RADIUS = 75 -- default 200
-RESPAWN_DELAY = 5 -- seconds (def. 5)
+RESPAWN_RADIUS = 75     -- default 75
+RESPAWN_DELAY = 5       -- seconds (def. 5)
 BACKUP_RESPAWN_POINTS = {
-	{x = 0, y = 0, z = 70} --TODO: Add more backup respawn points (only in or near city)
+	{ x = 0, y = 0, z = 70 } --TODO: Add more backup respawn points (only in or near city)
 }
 INIT_PLAYER_MODELS = {
 	"a_m_y_skater_01",
@@ -12,14 +11,15 @@ INIT_PLAYER_MODELS = {
 }
 
 BLIPS = {}
-DEBUG_PRINT = false
+DEBUG_PRINT = true
+DEBUG_BLIPS = true
 
 -- https://docs.fivem.net/docs/resources/baseevents/events/onPlayerDied/
 AddEventHandler('baseevents:onPlayerDied', function(killerType, deathCoords)
 	clearBlips()
 	exports.spawnmanager:setAutoSpawn(false)
 	Wait(RESPAWN_DELAY * 1000)
-	RespawnNear(deathCoords, RESPAWN_RADIUS)
+	RespawnNear(deathCoords, RESPAWN_RADIUS, 0)
 	ClearPedBloodDamage(GetPlayerPed(-1))
 end)
 
@@ -28,7 +28,7 @@ AddEventHandler('baseevents:onPlayerKilled', function(killerId, deathData)
 	clearBlips()
 	exports.spawnmanager:setAutoSpawn(false)
 	Wait(RESPAWN_DELAY * 1000)
-	RespawnNear(deathData.killerpos, RESPAWN_RADIUS)
+	RespawnNear(deathData.deathCoords, RESPAWN_RADIUS, 0)
 	ClearPedBloodDamage(GetPlayerPed(-1))
 end)
 
@@ -38,155 +38,185 @@ function clearBlips()
 	end
 end
 
-function RespawnNear(deathCoords, radius)
-	local death_x, death_y, death_z = table.unpack(deathCoords)
-	local newPos = BACKUP_RESPAWN_POINTS[math.random(1, #BACKUP_RESPAWN_POINTS)]
-	local lowerOffset = radius
-	local higherOffset = radius*3
-
-	local maxIterations = 20
-	local maxIterationsBackup = 500
-	local node = GetNthClosestVehicleNodeId(death_x,death_y,death_z, math.random(lowerOffset, higherOffset), NODE_TYPE_RESPAWN, 300.0, 300.0)
-	local counter = 0
-	
-	local colors = {0,1,2,3,7,8,25,27,29,40,5,17} -- for debug blips https://docs.fivem.net/docs/game-references/blips/#blip-colors
-
-	local lowerOffTemp = lowerOffset
-	local heigherOffTemp = higherOffset
-	local x, y, z = death_x, death_y, death_z
-	while node == 0 do -- should only happen far in the water or some mountains/beaches
-		if counter == maxIterations then
-			break
-		end
-		local absX = math.abs(death_x)
-		local absY = math.abs(death_y)
-		if absX >= absY then -- slowly get closer back to the island/back to the roads/paths
-			death_x = death_x * 0.9
-		elseif absY > absX then
-			death_y = death_y * 0.9
-		end
-		lowerOffTemp = math.floor(lowerOffTemp/4)
-		heigherOffTemp = math.floor(heigherOffTemp/4)
-		node = GetNthClosestVehicleNodeId(death_x,death_y,death_z, math.random(lowerOffTemp, heigherOffTemp), NODE_TYPE_RESPAWN, 300.0, 300.0)
-		counter = counter + 1
-	end
-
-	counter = 0
-	local found, sidewalk
-	local bestPoint = {den=15, pos=newPos}
-	
-	if (DEBUG_PRINT) then
-		lastBlip = AddBlipForCoord(death_x,death_y,death_z)
-		BLIPS[#BLIPS+1] = lastBlip
-		SetBlipSprite(lastBlip, 1)
-		
-		SetBlipColour(lastBlip, colors[10]) --dark grey == death
-	end
-
-	repeat
-		if node == 0 then
-			break
-		end
-		newPos = GetVehicleNodePosition(node)
-		if (counter > 0) then
-			if (counter % 10 == 0) then
-				node = GetNthClosestVehicleNodeId(death_x,death_y,death_z, math.random(lowerOffset, higherOffset), NODE_TYPE_RESPAWN, 300.0, 300.0)
-			else
-				node = GetNthClosestVehicleNodeId(newPos.x, newPos.y, newPos.z, counter % 10 + 1, 1, 300.0, 300.0)
-			end
-			if (DEBUG_PRINT) then
-				lastBlip = AddBlipForCoord(newPos.x, newPos.y, newPos.z)
-				BLIPS[#BLIPS+1] = lastBlip
-				SetBlipSprite(lastBlip, 1)
-			end
-			local ret, den, flags = GetVehicleNodeProperties(newPos.x, newPos.y, newPos.z)
-			-- check if flag 4 is set and 8 not (4 = smaller roads, 8 = asphalt?)
-			if (flags & (1 << (4 - 1)) ~= 0 and flags & (1 << (8 - 1)) == 0) then  -- sidewalk and road
-				bestPoint.den = 0
-				bestPoint.pos = newPos
-				if (DEBUG_PRINT) then
-					SetBlipColour(lastBlip, colors[11]) -- yellow/gold == best
-				end
-			else
-				if bestPoint.den > den or (bestPoint.den == den and math.random(1,2) == 1) then
-					bestPoint.den = den
-					bestPoint.pos = newPos
-				end
-				if (DEBUG_PRINT) then
-					if den <= 1 then
-						SetBlipColour(lastBlip, colors[3]) -- green == good ; low dens streets
-					elseif den < 4 then
-						SetBlipColour(lastBlip, colors[4]) -- blue == ok ; medium dens streets
-					elseif den < 6 then
-						SetBlipColour(lastBlip, colors[12]) -- orange == meh ; (uncommon, but should be high dens streets)
-					else
-						SetBlipColour(lastBlip, colors[2]) -- red == bad (Highways, Main roads, rarely on random intersections)
-					end
-				end
-			end	
-		end
-		found, sidewalk = GetSafeCoordForPed(newPos.x, newPos.y, newPos.z, true, 16) -- walkway (best possible spawn)
-		
-		counter = counter+1
-	until (found  or counter >= maxIterationsBackup)
-	
-	if not found then -- if not SafeCoordForPed(walkway (only in city?))) found, set best backup point
-		sidewalk = bestPoint.pos
-	end
-	-- Check if North Yankton area, if so respawn at backup point to prevent respawn in water
-	-- TODO: maybe add check to see if north yankton is loaded
-	if sidewalk.x > 5000 and sidewalk.y < -5000 then
-		sidewalk = vector3(1285.0, -3339.0, 6.0) -- Port (nearest Point)
-	end
-	
-	-- check if sidewalk is too close to deathCoords, if so call Respawn with higherRadius
-	local distance = (death_x - sidewalk.x)^2 + (death_y - sidewalk.y)^2
-	if distance < 10000 then
-		RespawnNear(deathCoords, radius+100)
+function showBlipIfDebug(coords, color, text)
+	if (not DEBUG_BLIPS) then
 		return
 	end
 
+	local coord_x, coord_y, coord_z = table.unpack(coords)
+	local blip = AddBlipForCoord(coord_x, coord_y, coord_z)
+	BLIPS[#BLIPS+1] = blip
+	SetBlipSprite(blip, 1)
+	SetBlipColour(blip, color)
+	BeginTextCommandSetBlipName("STRING")
+	AddTextComponentString(tostring(text))
+	EndTextCommandSetBlipName(blip)
+end
+
+function RespawnNear(deathCoords, radius, _depth)
 	local playerModel = GetEntityModel(PlayerPedId())
-	Respawn(sidewalk, playerModel)
-end
+	if (_depth > 10) then
+		print("[ERROR]: Max depth reached, aborting RespawnNear")
+		Respawn(BACKUP_RESPAWN_POINTS[math.random(1, #BACKUP_RESPAWN_POINTS)], 0, playerModel)
+		return
+	end
 
-function Respawn(coords, model)
-	local newPlayerModel = model or INIT_PLAYER_MODELS[math.random(1, #INIT_PLAYER_MODELS)]
-	exports.spawnmanager:setAutoSpawnCallback(function()
-        exports.spawnmanager:spawnPlayer({
-            x = coords.x,
-            y = coords.y,
-            z = coords.z,
-			model = newPlayerModel
-        })
-    end)
-    exports.spawnmanager:forceRespawn()
-end
+	local death_x, death_y, death_z = table.unpack(deathCoords)
+	if (DEBUG_PRINT) then
+		print("[DEBUG]: RespawnNear called with deathCoords: [" .. death_x .. ", " .. death_y .. ", " .. death_z .. "], radius: " .. radius)
+	end
+	local newPos = BACKUP_RESPAWN_POINTS[math.random(1, #BACKUP_RESPAWN_POINTS)]
+	local newRot = math.random(0, 360)
+	local maxIterations = 50
+	local counter = 0
+	local footpath_found = false
+	local backups = {}
 
--- Commands to change the respawnType
--- expects 1 or 2 ("main", "any")
--- 1 = Backups only on big roads with asphalt
--- 2 = Any path or road (recommended)
+	showBlipIfDebug(deathCoords, 40, "Death Point") -- dark gray
 
-RegisterCommand("respawnType", function(source, args, rawCommand)
-	ChangeRespawnType(args[1])
-end, false)
+	while (not footpath_found) and counter < maxIterations do
 
-RegisterCommand("rt", function(source, args, rawCommand)
-	ChangeRespawnType(args[1])
-end, false)
+		local possibleSpawns = {}
+		for _i = 1, 20 do
+			local closeNode = GetNthClosestVehicleNodeId(death_x, death_y, death_z, math.random(0, radius), 1, 300.0, 300.0)
+			if closeNode ~= 0 then
+				local roadNodePos = GetVehicleNodePosition(closeNode)
 
-function ChangeRespawnType(type)
-	if type == "main" then
-		NODE_TYPE_RESPAWN = 0
-	elseif type == "any" then
-		NODE_TYPE_RESPAWN = 1
-	else
-		-- if number set directly
-		if tonumber(type) then
-			NODE_TYPE_RESPAWN = tonumber(type)
+				-- save node and grouped by density
+				local succ, density, _flags = GetVehicleNodeProperties(roadNodePos.x, roadNodePos.y, roadNodePos.z)
+				if (succ) then
+					if not possibleSpawns[density] then
+						possibleSpawns[density] = {}
+					end
+					possibleSpawns[density][#possibleSpawns[density]+1] = roadNodePos
+				end
+			end
+		end
+
+		if (#possibleSpawns > 0) then
+			-- if any possibleSpawns found, choose the one with lowest density but only if a safe coord was found (footpath)
+			local densities = {}
+			for k, v in pairs(possibleSpawns) do
+				densities[#densities+1] = k
+			end
+
+			table.sort(densities)
+
+			for i = 1, #densities do
+				local density = densities[i]
+				local spawns = possibleSpawns[density]
+				if (#spawns > 0) then
+					for j = 1, #spawns do
+						local possibleSpawn = spawns[j]
+						local succ, footpathPos = GetSafeCoordForPed(possibleSpawn.x, possibleSpawn.y, possibleSpawn.z, false, 1)
+						if (not succ) then
+							succ, footpathPos = GetSafeCoordForPed(possibleSpawn.x, possibleSpawn.y, possibleSpawn.z, false, 16)
+						end
+
+						if (succ) then
+							footpath_found = true
+							newPos = footpathPos
+							newRot = GetHeadingFromVector_2d(footpathPos.x - possibleSpawn.x, footpathPos.y - possibleSpawn.y) -- face towards road
+							showBlipIfDebug(footpathPos, 2, "Footpath") -- green
+						else
+							backups[#backups+1] = possibleSpawn
+							showBlipIfDebug(possibleSpawn, 3, "Backup") -- blue
+						end
+					end
+				end
+			end
+
+			if (footpath_found) then
+				break
+			end
+		end
+
+		if (#backups > 0) then -- if no footpath found, use backup
+			newPos = backups[1] -- take first (lowest density) backup
+			footpath_found = true
+			if (DEBUG_PRINT) then
+				print("[DEBUG]: Backup used")
+			end
+			break
+		else 
+			-- if backups empty, slowly get closer to the center of the map and try again
+			local absX = math.abs(death_x)
+			local absY = math.abs(death_y)
+			if absX >= absY then 
+				death_x = death_x * 0.75
+			elseif absY > absX then
+				death_y = death_y * 0.75
+			end
+			if (counter > maxIterations / 2) then
+				radius = math.floor(math.max(radius * 0.9, 1))
+			end
+
+			if (DEBUG_PRINT) then
+				print("[DEBUG]: No nodes found, trying again with goint closer to center...")
+				print("[DEBUG]: New Death Coords: [" .. death_x .. ", " .. death_y .. ", " .. death_z .. "]")
+				print("[DEBUG]: New Radius: " .. radius)
+			end
+		end
+		counter = counter + 1
+	end
+	if (DEBUG_PRINT) then
+		print("[DEBUG]: Iterations: " .. counter)
+		print("[DEBUG]: Final Death Coords: [" .. death_x .. ", " .. death_y .. ", " .. death_z .. "]")
+	end
+
+	-- North Yankton check (TODO: Check if north yankton is loaded)
+	if newPos.x > 2750 and newPos.y < -4500 then
+		newPos = vector3(1285.0, -3339.0, 6.0) -- Port (nearest Point)
+		if (DEBUG_PRINT) then
+			print("[DEBUG]: North Yankton detected, teleporting to port...")
 		end
 	end
+
+	-- check if respawn point is too close to deathCoords, if so call Respawn with higherRadius
+	local org_death_x, org_death_y, org_death_z = table.unpack(deathCoords)
+	local distance = math.sqrt((org_death_x - newPos.x) ^ 2 + (org_death_y - newPos.y) ^ 2)
+	if (DEBUG_PRINT) then
+		print("[DEBUG]: Distance to deathCoords: " .. string.format("%.2f", distance))
+	end
+	counter = 1
+	while distance < RESPAWN_RADIUS and counter+1 < #backups do
+		if (DEBUG_PRINT) then
+			print("[DEBUG]: Too close to deathCoords, trying backups...")
+		end
+		showBlipIfDebug(newPos, 1, "Too Close") -- red
+
+		counter = counter + 1
+		newPos = backups[counter]
+		distance = math.sqrt((org_death_x - newPos.x) ^ 2 + (org_death_y - newPos.y) ^ 2)
+	end
+
+	if (distance < RESPAWN_RADIUS) then
+		if (DEBUG_PRINT) then
+			print("[DEBUG]: Still too close to deathCoords, trying again with higher radius...")
+		end
+		RespawnNear(deathCoords, math.ceil(radius * 1.1), _depth + 1)
+		return
+	end
+	if (DEBUG_PRINT) then
+		print("[DEBUG]: Respawn coords: [" .. newPos.x .. ", " .. newPos.y .. ", " .. newPos.z .. "]")
+	end
+
+	showBlipIfDebug(newPos, 5, "Respawn Point") -- yellow
+	Respawn(newPos, newRot, playerModel)
+end
+
+function Respawn(coords, rot, model)
+	local newPlayerModel = model or INIT_PLAYER_MODELS[math.random(1, #INIT_PLAYER_MODELS)]
+	exports.spawnmanager:setAutoSpawnCallback(function()
+		exports.spawnmanager:spawnPlayer({
+			x = coords.x,
+			y = coords.y,
+			z = coords.z,
+			heading = rot,
+			model = newPlayerModel
+		})
+	end)
+	exports.spawnmanager:forceRespawn()
 end
 
 -- Awaiting scripts workaround
@@ -201,6 +231,7 @@ if playerCoords.x == 0 and playerCoords.y == 0 and playerCoords.z == 1 and playe
 end
 
 -- Exports
-exports("ChangeRespawnType", ChangeRespawnType)
 exports("Respawn", Respawn)
 exports("RespawnNear", RespawnNear)
+
+Respawn(GetEntityCoords(PlayerPedId()), GetEntityHeading(PlayerPedId()), GetEntityModel(PlayerPedId()))

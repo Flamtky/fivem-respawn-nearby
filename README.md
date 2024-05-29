@@ -1,45 +1,38 @@
 # FiveM Nearby Respawn System
 
-This script tries to revive a player near a "safe" location.
-The goal is to create a respawn that works similar to GTA5 Online. Currently it should work 99.9% of the time.
-1. At all time the script tries to spawn you nearby on a walkway.
-2. If this fails it tries finding a backup point by search Nodes (Streets, paths). By comparing the traffic density, points with a lower density are preferred (the lower the density, the fewer cars), also it tries to check the type of the road/path by reading the flags.
-  2.1 If several are found, it will be chosen at random
-3. If no respawn node is found, it iterates with a new midpoint (10% closer to `(0,0,0)`).
-4. If everything before fails (maxIterations, too far), you will be resurrected on `(0,0,70)`. (Script contains a BACKUP_RESPAWN_POINTS list, feel free to add some own points)  
-5. If the selected point is too close to the death point (10000 units), try again with a radius of `+100`
+This script tries to revive a player near a "safe" location. The goal is to create a respawn that works similar to GTA5 Online. Currently it should work 99.9% of the time. Tested on 
+1. The script gathers 20 potential spawn locations near the player's death coordinates and groups them by traffic density.
+2. The script evaluates the traffic density of each potential spawn location and prioritizes those with lower traffic density.
+3. For each potential spawn location, the script checks if it can find a safe spot for the player to respawn, looking for safe coordinates for pedestrians.
+4. If a safe pedestrian path is not found, the script saves the location as a backup option for later consideration.
+5. The script selects the best spawn location based on the lowest traffic density and availability of a safe pedestrian path, defaulting to a backup if necessary.
+6. If no suitable spawn point is found within a certain number of attempts, the script adjusts the search parameters by moving closer to the center of the map. Up to 50 attempts are made to find a suitable spawn point.
+7. If the selected spawn point is in a special area like North Yankton, the script redirects the spawn location to a safe predefined point.
+8. The script checks if the selected location is too close to the player's death coordinates and tries all other backup locations if necessary.
+9. If the script can't find a suitable respawn point after all attempts, it recursively calls itself with a larger search radius and increased depth control to avoid infinite loops (up to 10 recursive calls).
+10. Once a suitable location is found, the script respawns the player at this location with the appropriate orientation, ensuring the player faces towards the road. If no suitable location is found, the player respawns at (0, 0, 70) (This list of backup locations can be expanded in `client.lua`).
 
-## Command(s)
-
-### `/respawnType` | `/rt`
-This command allows you to change the respawn type (respawn location). 
-
-Arguments:
-- type (possbile Values: `0`,`1` or `main`, `any`)
-    > 0 | main -- Respawns you only near big/main roads (eg. Highways)  
-    > 1 | any -- Respawns you on any road or path (eg. Footpath, on Mount Chiliad, Alleys...)
-
+Debug Prints and Blips are also available, by changing the bools in `client.lua`.
 
 ## Screenshots:
-Debug Prints are also available. Just change the bool in `client.lua`  
-<img src="https://user-images.githubusercontent.com/68606032/212586570-e95f61da-2cbe-4b91-a6fb-0f65bdaa16ca.jpg" width="400" />
-<img src="https://user-images.githubusercontent.com/68606032/212586563-49f0ee0e-a748-4320-9c24-d8f265b0668f.jpg" width="210" />  
-<img src="https://user-images.githubusercontent.com/68606032/212586454-48e977d7-46a6-4d2d-9135-ecb2d539bbb7.jpg" width="400" />
-<img src="https://user-images.githubusercontent.com/68606032/212586567-e50a3d2b-be00-4d44-9c6c-926425dc2263.jpg" width="240" />
+<img src="https://github.com/Flamtky/fivem-respawn-nearby/assets/68606032/d2a987e1-db4d-4aed-829f-e4a2638de275" width="360" />
+<img src="https://github.com/Flamtky/fivem-respawn-nearby/assets/68606032/96647d78-70d0-4ea2-ab6e-99f4c12a2099" width="240" /><br>
+<img src="https://github.com/Flamtky/fivem-respawn-nearby/assets/68606032/4a1823ae-4fd3-43cb-a9e8-e6a82849879e" width="360" />
+<img src="https://github.com/Flamtky/fivem-respawn-nearby/assets/68606032/e2ec91c0-d130-4cab-96e9-06951132402e" width="360" />
 
-Walkway Respawnpoints are **not** shown. You just respawn instantly there.
 | Color       |  Meaning |
 |-------------|----------|
-| Dark gray | Death Point |
-| Yellow/Gold | Best (Beach, Alley, Offroad...)|
-| Green       | Good (Smaller roads (asphalt) |
-| Blue        | Okay (Side streets (sometimes offroad)) |
-| Orange      | Meh (Uncommon (High density)) |
-| Red         | Bad (Highway, Main roads, (rarely intersections)) |
+| Dark gray   | Death Point |
+| Yellow/Gold | Respawn Point |
+| Green       | Safe Respawn Point (Footpath, Walkway, etc.) |
+| Blue        | Backup Respawn Point (Roads with no footpaths, high density roads) |
+| Red         | Too close to the Death Point |
 
+## Installation:
+1. Download this repository and extract it to your resources folder. **NOTE:** This script requires the `spawnmanager` resource to be running. 
+2. Add `ensure nearby-respawn` to your server.cfg. Make sure that `spawnmanager` is ensured **before** `nearby-respawn`.
+1. Done. You should now be able to respawn nearby your death location.
 
 ## Known Issues:
-* You **rarely** respawn too far inland from the sea **Needs more testing**
 * You **rarely** respawn inside of an bunker entrance (Maybe also other dlc content, eg. facilities)
-* Sometimes no nodes are found. (Could be intended by the native function?) **Needs more testing**
-* ~~The radius is too small in the city while it is too big in the countryside~~
+* This system only supports the main island of GTA5 (Los Santos). North Yankton, Cayo Perico, etc. are not supported. (WIP)
