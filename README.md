@@ -1,6 +1,6 @@
 # FiveM Nearby Respawn System
 
-This script tries to revive a player near a "safe" location. The goal is to create a respawn that works similar to GTA5 Online. Currently it should work 99.9% of the time. Tested on 
+This script tries to revive a player near a "safe" location. The goal is to create a respawn that works similar to GTA5 Online. Currently it should work 99.9% of the time.
 1. The script gathers 20 potential spawn locations near the player's death coordinates and groups them by traffic density.
 2. The script evaluates the traffic density of each potential spawn location and prioritizes those with lower traffic density.
 3. For each potential spawn location, the script checks if it can find a safe spot for the player to respawn, looking for safe coordinates for pedestrians.
