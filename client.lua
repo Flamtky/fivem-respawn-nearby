@@ -11,8 +11,8 @@ INIT_PLAYER_MODELS = {
 }
 
 BLIPS = {}
-DEBUG_PRINT = true
-DEBUG_BLIPS = true
+DEBUG_PRINT = false
+DEBUG_BLIPS = false
 
 -- https://docs.fivem.net/docs/resources/baseevents/events/onPlayerDied/
 AddEventHandler('baseevents:onPlayerDied', function(killerType, deathCoords)
@@ -220,11 +220,7 @@ function Respawn(coords, rot, model)
 end
 
 -- Awaiting scripts workaround
-local player = PlayerPedId()
-local playerCoords = GetEntityCoords(player)
-local playerHeading = GetEntityHeading(player)
-local isFalling = IsPedFalling(player)
-if playerCoords.x == 0 and playerCoords.y == 0 and playerCoords.z == 1 and playerHeading == 0 and not isFalling then
+if not NetworkIsPlayerActive(PlayerId()) then -- If the player is not active, respawn them at a random backup point (initial spawn)
 	local randomBackupPoint = BACKUP_RESPAWN_POINTS[math.random(1, #BACKUP_RESPAWN_POINTS)]
 	randomBackupPoint = vector3(randomBackupPoint['x'], randomBackupPoint['y'], randomBackupPoint['z'])
 	Respawn(randomBackupPoint)
@@ -233,5 +229,3 @@ end
 -- Exports
 exports("Respawn", Respawn)
 exports("RespawnNear", RespawnNear)
-
-Respawn(GetEntityCoords(PlayerPedId()), GetEntityHeading(PlayerPedId()), GetEntityModel(PlayerPedId()))
