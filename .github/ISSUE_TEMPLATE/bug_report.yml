@@ -1,0 +1,88 @@
+name: Bug Report
+description: File a bug report.
+title: "[Bug]: "
+labels: ["bug"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+
+  - type: input
+    id: game_version
+    attributes:
+      label: Game Version
+      description: What version of the game are you running? (e.g., 3095)
+      placeholder: e.g., 3095
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem_description
+    attributes:
+      label: Problem Description
+      description: Describe the problem in detail.
+      placeholder: Provide a detailed description of the problem.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps_to_reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Describe the steps to reproduce the issue.
+      placeholder: 1. Go to '...'\n2. Click on '...'\n3. Scroll down to '...'\n4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected Behavior
+      description: Describe what you expected to happen.
+      placeholder: Provide a clear and concise description of what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual_behavior
+    attributes:
+      label: Actual Behavior
+      description: Describe what actually happened.
+      placeholder: Provide a clear and concise description of what actually happened.
+    validations:
+      required: true
+
+  - type: textarea
+    id: console_output
+    attributes:
+      label: Console Output
+      description: Please provide the console output (F8 in-game) with `DEBUG_PRINTS` set to true.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: server_cfg
+    attributes:
+      label: Server.cfg
+      description: Please provide the relevant part of your `server.cfg`, especially for `spawnmanager` and `nearby-respawn`.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here.
+      placeholder: Any additional information that might help.
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        If possible, please include a screenshot of the map after respawn with `DEBUG_BLIPS` on.
