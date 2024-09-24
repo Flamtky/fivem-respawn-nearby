@@ -16,11 +16,17 @@ DEBUG_BLIPS = false
 
 -- https://docs.fivem.net/docs/resources/baseevents/events/onPlayerDied/
 AddEventHandler('baseevents:onPlayerDied', function(killerType, deathCoords)
+	if (deathCoords == nil) then
+		deathCoords = GetEntityCoords(PlayerPedId())
+	end
 	handleDeath(deathCoords)
 end)
 
 -- https://docs.fivem.net/docs/resources/baseevents/events/onPlayerKilled/
 AddEventHandler('baseevents:onPlayerKilled', function(killerId, deathData)
+	if (deathData.deathCoords == nil) then
+		deathData.deathCoords = GetEntityCoords(PlayerPedId())
+	end
 	handleDeath(deathData.deathCoords)
 end)
 
@@ -286,3 +292,5 @@ exports.spawnmanager:setAutoSpawn(false)
 -- Exports
 exports("Respawn", Respawn)
 exports("GetRespawnCoords", GetRespawnCoords)
+
+Respawn(GetEntityCoords(PlayerPedId()), GetEntityHeading(PlayerPedId()), GetEntityModel(PlayerPedId()))
