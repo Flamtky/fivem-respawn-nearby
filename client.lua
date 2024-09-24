@@ -14,21 +14,13 @@ BLIPS = {}
 DEBUG_PRINT = false
 DEBUG_BLIPS = false
 
--- https://docs.fivem.net/docs/resources/baseevents/events/onPlayerDied/
-AddEventHandler('baseevents:onPlayerDied', function(killerType, deathCoords)
+-- https://docs.fivem.net/docs/resources/baseevents/events/onPlayerWasted/
+AddEventHandler('baseevents:onPlayerWasted', function(deathCoords)
 	clearBlips()
-	exports.spawnmanager:setAutoSpawn(false)
-	Wait(RESPAWN_DELAY * 1000)
-	RespawnNear(deathCoords, RESPAWN_RADIUS, 0)
-	ClearPedBloodDamage(GetPlayerPed(-1))
-end)
-
--- https://docs.fivem.net/docs/resources/baseevents/events/onPlayerKilled/
-AddEventHandler('baseevents:onPlayerKilled', function(killerId, deathData)
-	clearBlips()
-	exports.spawnmanager:setAutoSpawn(false)
-	Wait(RESPAWN_DELAY * 1000)
-	RespawnNear(deathData.deathCoords, RESPAWN_RADIUS, 0)
+	local deathCoords, deathRotation, modelAfterDeath = GetRespawnCoords(deathCoords, RESPAWN_RADIUS, 0)
+	local gameTimer = GetGameTimer()
+	Wait(math.max((RESPAWN_DELAY * 1000) - (GetGameTimer() - gameTimer), 0))
+	Respawn(deathCoords, deathRotation, modelAfterDeath)
 	ClearPedBloodDamage(GetPlayerPed(-1))
 end)
 
@@ -53,17 +45,17 @@ function showBlipIfDebug(coords, color, text)
 	EndTextCommandSetBlipName(blip)
 end
 
-function RespawnNear(deathCoords, radius, _depth)
+function GetRespawnCoords(deathCoords, radius, _depth)
 	local playerModel = GetEntityModel(PlayerPedId())
 	if (_depth > 10) then
-		print("[ERROR]: Max depth reached, aborting RespawnNear")
+		print("[ERROR]: Max depth reached, aborting GetRespawnCoords")
 		Respawn(BACKUP_RESPAWN_POINTS[math.random(1, #BACKUP_RESPAWN_POINTS)], 0, playerModel)
 		return
 	end
 
 	local death_x, death_y, death_z = table.unpack(deathCoords)
 	if (DEBUG_PRINT) then
-		print("[DEBUG]: RespawnNear called with deathCoords: [" .. death_x .. ", " .. death_y .. ", " .. death_z .. "], radius: " .. radius)
+		print("[DEBUG]: GetRespawnCoords called with deathCoords: [" .. death_x .. ", " .. death_y .. ", " .. death_z .. "], radius: " .. radius)
 	end
 	local newPos = BACKUP_RESPAWN_POINTS[math.random(1, #BACKUP_RESPAWN_POINTS)]
 	local newRot = math.random(0, 360)
@@ -172,7 +164,7 @@ function RespawnNear(deathCoords, radius, _depth)
 		end
 	end
 
-	-- check if respawn point is too close to deathCoords, if so call Respawn with higherRadius
+	-- check if respawn point is too close to deathCoords, if so call GetRespawnCoords with higherRadius
 	local org_death_x, org_death_y, org_death_z = table.unpack(deathCoords)
 	local distance = math.sqrt((org_death_x - newPos.x) ^ 2 + (org_death_y - newPos.y) ^ 2)
 	if (DEBUG_PRINT) then
@@ -194,29 +186,26 @@ function RespawnNear(deathCoords, radius, _depth)
 		if (DEBUG_PRINT) then
 			print("[DEBUG]: Still too close to deathCoords, trying again with higher radius...")
 		end
-		RespawnNear(deathCoords, math.ceil(radius * 1.1), _depth + 1)
-		return
+		return GetRespawnCoords(deathCoords, math.ceil(radius * 1.1), _depth + 1)
 	end
 	if (DEBUG_PRINT) then
 		print("[DEBUG]: Respawn coords: [" .. newPos.x .. ", " .. newPos.y .. ", " .. newPos.z .. "]")
 	end
 
 	showBlipIfDebug(newPos, 5, "Respawn Point") -- yellow
-	Respawn(newPos, newRot, playerModel)
+
+	return newPos, newRot, playerModel
 end
 
 function Respawn(coords, rot, model)
 	local newPlayerModel = model or INIT_PLAYER_MODELS[math.random(1, #INIT_PLAYER_MODELS)]
-	exports.spawnmanager:setAutoSpawnCallback(function()
-		exports.spawnmanager:spawnPlayer({
-			x = coords.x,
-			y = coords.y,
-			z = coords.z,
-			heading = rot,
-			model = newPlayerModel
-		})
-	end)
-	exports.spawnmanager:forceRespawn()
+	exports.spawnmanager:spawnPlayer({
+		x = coords.x,
+		y = coords.y,
+		z = coords.z,
+		heading = rot,
+		model = newPlayerModel
+	})
 end
 
 -- Awaiting scripts workaround
@@ -226,6 +215,9 @@ if not NetworkIsPlayerActive(PlayerId()) then -- If the player is not active, re
 	Respawn(randomBackupPoint)
 end
 
+-- Disable auto spawn
+exports.spawnmanager:setAutoSpawn(false)
+
 -- Exports
 exports("Respawn", Respawn)
-exports("RespawnNear", RespawnNear)
+exports("GetRespawnCoords", GetRespawnCoords)
