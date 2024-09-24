@@ -107,7 +107,6 @@ function GetRespawnCoords(deathCoords, radius, _depth)
 		end
 
 		if (next(possibleSpawns) ~= nil) then
-			print("[DEBUG]: Possible spawns found: " .. #possibleSpawns)
 			-- if any possibleSpawns found, choose the one with lowest density but only if a safe coord was found (footpath)
 			local densities = {}
 			for k, v in pairs(possibleSpawns) do
@@ -284,13 +283,13 @@ if playerCoords.x == 0 and playerCoords.y == 0 and playerCoords.z == 1 and playe
 	local randomBackupPoint = BACKUP_RESPAWN_POINTS[math.random(1, #BACKUP_RESPAWN_POINTS)]
 	randomBackupPoint = vector3(randomBackupPoint['x'], randomBackupPoint['y'], randomBackupPoint['z'])
 	Respawn(randomBackupPoint)
+elseif GetEntityHealth(player) <= 0 then
+	handleDeath(playerCoords)
 end
-
+	
 -- Disable auto spawn
 exports.spawnmanager:setAutoSpawn(false)
 
 -- Exports
 exports("Respawn", Respawn)
 exports("GetRespawnCoords", GetRespawnCoords)
-
-Respawn(GetEntityCoords(PlayerPedId()), GetEntityHeading(PlayerPedId()), GetEntityModel(PlayerPedId()))
