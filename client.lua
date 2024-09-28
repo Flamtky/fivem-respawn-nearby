@@ -384,7 +384,7 @@ local isFalling = IsPedFalling(player)
 if playerCoords.x == 0 and playerCoords.y == 0 and playerCoords.z == 1 and playerHeading == 0 and not isFalling then
 	local randomBackupPoint = BACKUP_RESPAWN_POINTS[math.random(1, #BACKUP_RESPAWN_POINTS)]
 	randomBackupPoint = vector3(randomBackupPoint['x'], randomBackupPoint['y'], randomBackupPoint['z'])
-	Respawn(randomBackupPoint)
+	Respawn(randomBackupPoint, 0, false)
 elseif GetEntityHealth(player) <= 0 then
 	handleDeath(playerCoords)
 end
