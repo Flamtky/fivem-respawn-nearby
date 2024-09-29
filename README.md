@@ -13,23 +13,6 @@ This script provides a system to respawn players at "safe" locations near where 
 8. **Recursive Search**: If a suitable respawn point can't be found, the script recursively calls itself with a larger search radius. This is limited to 10 recursive calls to avoid infinite loops.
 9. **Final Respawn**: Once a suitable location is found, the player is respawned, oriented towards the road. If no location is found, the player respawns at (0, 0, 70). These backup locations can be expanded in `client.lua`.
 
-Debug prints and blips are available by adjusting the booleans in `client.lua`.
-
-## Screenshots with Debug Blips
-<img src="https://github.com/Flamtky/fivem-respawn-nearby/assets/68606032/d2a987e1-db4d-4aed-829f-e4a2638de275" width="360" />
-<img src="https://github.com/Flamtky/fivem-respawn-nearby/assets/68606032/96647d78-70d0-4ea2-ab6e-99f4c12a2099" width="240" /><br>
-<img src="https://github.com/Flamtky/fivem-respawn-nearby/assets/68606032/4a1823ae-4fd3-43cb-a9e8-e6a82849879e" width="360" />
-<img src="https://github.com/Flamtky/fivem-respawn-nearby/assets/68606032/e2ec91c0-d130-4cab-96e9-06951132402e" width="360" />
-
-## Debug Blip Colors:
-| Color       | Meaning |
-|-------------|--------------------------------------------------------------------------------|
-| Dark gray   | Death Point (or new Death Point(s) if no possible spawns are found nearby) |
-| Yellow/Gold | Respawn Point |
-| Green       | Safe Respawn Point (Footpath, Walkway, etc.) |
-| Blue        | Backup Respawn Point (Roads without footpaths, high-density roads) |
-| Red         | Possible Respawn Points that are **not** on ground |
-
 ## Installation:
 1. **Download** the repository and extract it to your resources folder.
    > **Note:** This script requires the `spawnmanager` **and** `baseevents` resources to be running.
@@ -49,6 +32,24 @@ Debug prints and blips are available by adjusting the booleans in `client.lua`.
 
 ### Important Note:
 - Disable resources like `mapmanager` and `basic-gamemode` as they have their own respawn logic that will interfere with this resource.
+
+## Debug Prints and Blips
+Debug prints and blips are available by adjusting the booleans in `client.lua`.
+
+### Screenshots with Debug Blips
+<img src="https://github.com/Flamtky/fivem-respawn-nearby/assets/68606032/d2a987e1-db4d-4aed-829f-e4a2638de275" width="360" />
+<img src="https://github.com/Flamtky/fivem-respawn-nearby/assets/68606032/96647d78-70d0-4ea2-ab6e-99f4c12a2099" width="240" /><br>
+<img src="https://github.com/Flamtky/fivem-respawn-nearby/assets/68606032/4a1823ae-4fd3-43cb-a9e8-e6a82849879e" width="360" />
+<img src="https://github.com/Flamtky/fivem-respawn-nearby/assets/68606032/e2ec91c0-d130-4cab-96e9-06951132402e" width="360" />
+
+### Debug Blip Colors:
+| Color       | Meaning |
+|-------------|--------------------------------------------------------------------------------|
+| Dark gray   | Death Point (or new Death Point(s) if no possible spawns are found nearby) |
+| Yellow/Gold | Respawn Point |
+| Green       | Safe Respawn Point (Footpath, Walkway, etc.) |
+| Blue        | Backup Respawn Point (Roads without footpaths, high-density roads) |
+| Red         | Possible Respawn Points that are **not** on ground |
 
 ## Known Issues / To-Do's:
 - You may **rarely** respawn inside a bunker entrance (or other DLC content, such as facilities). This needs further testing.
