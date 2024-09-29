@@ -328,7 +328,7 @@ function GetRespawnCoords(deathCoords, radius, _depth)
 
 		-- try each density to find a safe coord or backup
 		-- bestSpawn {x, y, z, heading}
-		local needToGoCloser, closerDeathCoords, bestSpawn = getBestPossibleSpawnOrGoCloser(possibleSpawns, densities, deathCoords, deathCoords)
+		local needToGoCloser, closerDeathCoords, bestSpawn = getBestPossibleSpawnOrGoCloser(possibleSpawns, densities, deathCoords)
 		if (not needToGoCloser) then
 			newSpawn = bestSpawn -- not going closer, found a spawn
 			break
