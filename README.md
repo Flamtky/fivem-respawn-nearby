@@ -36,17 +36,17 @@ This script provides a system to respawn players at "safe" locations near where 
 ## Debug Prints and Blips
 Debug prints and blips are available by adjusting the booleans in `client.lua`.
 
-### Screenshots with Debug Blips
+### Debug Blips
 <img src="https://github.com/Flamtky/fivem-respawn-nearby/assets/68606032/d2a987e1-db4d-4aed-829f-e4a2638de275" width="360" />
 <img src="https://github.com/Flamtky/fivem-respawn-nearby/assets/68606032/96647d78-70d0-4ea2-ab6e-99f4c12a2099" width="240" /><br>
 <img src="https://github.com/Flamtky/fivem-respawn-nearby/assets/68606032/4a1823ae-4fd3-43cb-a9e8-e6a82849879e" width="360" />
 <img src="https://github.com/Flamtky/fivem-respawn-nearby/assets/68606032/e2ec91c0-d130-4cab-96e9-06951132402e" width="360" />
 
-### Debug Blip Colors:
+### Blip Colors:
 | Color       | Meaning |
 |-------------|--------------------------------------------------------------------------------|
-| Dark gray   | Death Point (or new Death Point(s) if no possible spawns are found nearby) |
 | Yellow/Gold | Respawn Point |
+| Dark gray   | Death Point (or new Death Point(s) if no possible spawns are found nearby) |
 | Green       | Safe Respawn Point (Footpath, Walkway, etc.) |
 | Blue        | Backup Respawn Point (Roads without footpaths, high-density roads) |
 | Red         | Possible Respawn Points that are **not** on ground |
