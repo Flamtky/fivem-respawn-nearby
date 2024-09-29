@@ -28,7 +28,7 @@ Debug prints and blips are available by adjusting the booleans in `client.lua`.
 | Yellow/Gold | Respawn Point |
 | Green       | Safe Respawn Point (Footpath, Walkway, etc.) |
 | Blue        | Backup Respawn Point (Roads without footpaths, high-density roads) |
-| Red         | Possible Respawn Ponints that are **not** on ground |
+| Red         | Possible Respawn Points that are **not** on ground |
 
 ## Installation:
 1. **Download** the repository and extract it to your resources folder.
