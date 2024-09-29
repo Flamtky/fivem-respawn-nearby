@@ -24,11 +24,11 @@ Debug prints and blips are available by adjusting the booleans in `client.lua`.
 ### Blip Colors:
 | Color       | Meaning |
 |-------------|----------|
-| Dark gray   | Death Point or new Death Point (if the player died outside the map) |
+| Dark gray   | Death Point or new Death Point (if no possible spawns are found nearby) |
 | Yellow/Gold | Respawn Point |
 | Green       | Safe Respawn Point (Footpath, Walkway, etc.) |
 | Blue        | Backup Respawn Point (Roads without footpaths, high-density roads) |
-| Red         | Too close to the Death Point |
+| Red         | Possible Respawn Ponints that are **not** on ground |
 
 ## Installation:
 1. **Download** the repository and extract it to your resources folder.
@@ -47,5 +47,11 @@ Debug prints and blips are available by adjusting the booleans in `client.lua`.
     ```
 3. **Done**: You should now be able to respawn near your death location.
 
+### Important Note:
+- Disable resources like `mapmanager` and `basic-gamemode` as they have their own respawn logic that will interfere with this resource.
+- This resource depends on `base-events`, so ensure it is running on your server.
+
 ## Known Issues:
 - You may **rarely** respawn inside a bunker entrance (or other DLC content, such as facilities). This needs further testing.
+- Wrong rotation on repawn (You should always head towards the road). This hard to fix and low priority.
+- Currently the script is client-side only. The respawn nearby logic should be server-sided to prevent abuse.
