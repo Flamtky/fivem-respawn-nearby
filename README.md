@@ -47,6 +47,10 @@ Debug prints and blips are available by adjusting the booleans in `client.lua`.
     ```
 3. **Done**: You should now be able to respawn near your death location.
 
+### Important Note:
+- Disable resources like `mapmanager` and `basic-gamemode` as they have their own respawn logic that will interfere with this resource.
+- This resource depends on `base-events`, so ensure it is running on your server.
+
 ## Known Issues:
 - You may **rarely** respawn inside a bunker entrance (or other DLC content, such as facilities). This needs further testing.
 - Wrong rotation on repawn (You should always head towards the road). This hard to fix and low priority.
